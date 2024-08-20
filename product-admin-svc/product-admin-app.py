@@ -1,29 +1,46 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 import requests
+import os
 
 app = Flask(__name__)
 
-# Route to display the add-product page
-@app.route('/add-product-page')
-def add_product_page():
-    """
-    Return the add-product page
-    """
-    return render_template('add-product.html.j2')
+# Directory to store uploaded images
+IMAGE_DIR = 'uploaded_images/'
 
-# Route to add a new product to the catalog
-@app.route('/add-product', methods=['POST'])
-def add_product():
-    """
-    Add the new product to the catalog
-    """
-    product = {
-        "make": request.form['make'],
-        "model": request.form['model'],
-        "price": request.form['price']
+# Ensure the image directory exists
+os.makedirs(IMAGE_DIR, exist_ok=True)
+
+# Route to display the add-image page
+@app.route('/add-image-page')
+def add_image_page():
+    """Return the add-image page."""
+    return render_template('add-image.html.j2')
+
+# Route to add a new image to the catalog
+@app.route('/add-image', methods=['POST'])
+def add_image():
+    """Add the new image to the catalog."""
+    image_file = request.files['image']
+    title = request.form['title']
+    description = request.form['description']
+    tags = request.form['tags'].split(',')
+
+    # Save the image file to the designated directory
+    image_path = os.path.join(IMAGE_DIR, image_file.filename)
+    image_file.save(image_path)
+
+    # Prepare the image metadata
+    image_metadata = {
+        "title": title,
+        "description": description,
+        "tags": tags,
+        "image_path": image_path
     }
-    requests.post('http://catalog:5000/add-product', json=product, timeout=5)
-    return "success"
+
+    # Send the metadata to the catalog service
+    requests.post('http://catalog:5000/add-image', json=image_metadata, timeout=5)
+
+    return redirect(url_for('add_image_page'))
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

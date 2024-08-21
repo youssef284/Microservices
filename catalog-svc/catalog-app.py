@@ -9,7 +9,7 @@ app = Flask(__name__)
 r = redis.Redis(host='catalog-db', port=6379)
 
 # Directory where images will be stored
-IMAGE_DIR = 'images/'
+IMAGE_DIR = '/root/app/images/'
 
 # Ensure the image directory exists
 os.makedirs(IMAGE_DIR, exist_ok=True)
